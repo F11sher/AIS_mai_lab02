@@ -1,5 +1,5 @@
-#ifndef HTTPOTHERWEBSERVER_H
-#define HTTPOTHERWEBSERVER_H
+#ifndef HTTPDELIVERYSERVICE_H
+#define HTTPDELIVERYSERVICE_H
 
 #include "Poco/Net/HTTPServer.h"
 #include "Poco/Net/HTTPRequestHandler.h"
@@ -84,12 +84,14 @@ using Poco::Util::ServerApplication;
 
 #include <optional>
 #include "../helper.h"
+#include "../database/delivery.h"
+#include "../web_server/handlers/delivery_handler.h"
 
-class OtherHandler : public HTTPRequestHandler
+class DeliveryOtherHandler : public HTTPRequestHandler
 {
 
 public:
-    OtherHandler(const std::string &format) : _format(format)
+    DeliveryOtherHandler(const std::string &format) : _format(format)
     {
     }
 
@@ -200,19 +202,24 @@ public:
 
     HTTPRequestHandler *createRequestHandler([[maybe_unused]] const HTTPServerRequest &request)
     {
-        return new OtherHandler(_format);
+                if (hasSubstrDelivery(request.getURI(),"/delivery") ||
+                    hasSubstrDelivery(request.getURI(),"/get_deliveries")) 
+                    return new DeliveryHandler(_format);
+               
+        return 0;
     }
 
 private:
     std::string _format;
 };
 
-class HTTPOtherWebServer : public Poco::Util::ServerApplication
+class HTTPDeliveryOtherWebServer : public Poco::Util::ServerApplication
 {
 public:
     int main([[maybe_unused]] const std::vector<std::string> &args)
     {
 
+        database::Delivery::init();
         ServerSocket svs(Poco::Net::SocketAddress("0.0.0.0", 8081));
         HTTPServer srv(new HTTPOtherRequestFactory(DateTimeFormat::SORTABLE_FORMAT), svs, new HTTPServerParams);
         srv.start();

@@ -2,8 +2,14 @@ cmake_minimum_required(VERSION 3.2)
 
 project(hl_server C CXX)
 
-SET (EXAMPLE_BINARY "hl_mai_lab_01")
-SET (OTHER_SERVICE "other_service")
+SET (EXAMPLE_BINARY "AIS_mai_lab02")
+SET (ROUTE_SERVICE "delivery_service")
+SET (TRIP_SERVICE "recipient_service")
+
+SET (STD_CXX "c++17")
+SET (REDISCPP_FLAGS "-DREDISCPP_HEADER_ONLY=ON")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -std=${STD_CXX} ${REDISCPP_FLAGS}")
+SET (CMAKE_CXX_FLAGS_RELEASE "-O3 -g0 -std=${STD_CXX} -Wall -DNDEBUG ${REDISCPP_FLAGS}")
 
 find_package(OpenSSL)
 find_package(Threads)
@@ -26,7 +32,9 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(${EXAMPLE_BINARY} main.cpp 
                                  config/config.cpp 
                                  database/database.cpp
-                                 database/user.cpp)
+                                 database/user.cpp
+                                 database/delivery.cpp
+                                 database/recipient.cpp)
 
 
 target_include_directories(${EXAMPLE_BINARY} PRIVATE "${CMAKE_BINARY_DIR}")
@@ -45,13 +53,19 @@ target_link_libraries(${EXAMPLE_BINARY} PRIVATE
 
 
 
-add_executable(${OTHER_SERVICE} other_main.cpp)
-target_include_directories(${OTHER_SERVICE} PRIVATE "${CMAKE_BINARY_DIR}")
-target_compile_options(${OTHER_SERVICE} PRIVATE -Wall -Wextra -pedantic -Werror )
-set_target_properties(${OTHER_SERVICE} PROPERTIES LINKER_LANGUAGE CXX)
-set_target_properties(${OTHER_SERVICE} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+add_executable(${DELIVERY_SERVICE} delivery_main.cpp
+                                config/config.cpp
+                                database/database.cpp
+                                database/user.cpp                                
+                                database/delivery.cpp
+                                database/recipient.cpp)
 
-target_link_libraries(${OTHER_SERVICE} PRIVATE 
+target_include_directories(${DELIVERY_SERVICE} PRIVATE "${CMAKE_BINARY_DIR}")
+target_compile_options(${DELIVERY_SERVICE} PRIVATE -Wall -Wextra -pedantic -Werror )
+set_target_properties(${DELIVERY_SERVICE} PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(${DELIVERY_SERVICE} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+
+target_link_libraries(${DELIVERY_SERVICE} PRIVATE 
                              ${CMAKE_THREAD_LIBS_INIT} 
                              ${Poco_LIBRARIES}
                              "PocoData"
@@ -59,7 +73,22 @@ target_link_libraries(${OTHER_SERVICE} PRIVATE
                              "mysqlclient"
                              ZLIB::ZLIB)
 
+add_executable(${RECIPIENT_SERVICE}  recipient_main.cpp
+                                config/config.cpp
+                                database/database.cpp
+                                database/user.cpp                                
+                                database/delivery.cpp
+                                database/recipient.cpp)
 
+target_include_directories(${RECIPIENT_SERVICE} PRIVATE "${CMAKE_BINARY_DIR}")
+target_compile_options(${RECIPIENT_SERVICE} PRIVATE -Wall -Wextra -pedantic -Werror )
+set_target_properties(${RECIPIENT_SERVICE} PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(${RECIPIENT_SERVICE} PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 
-
-
+target_link_libraries(${RECIPIENT_SERVICE} PRIVATE 
+                             ${CMAKE_THREAD_LIBS_INIT} 
+                             ${Poco_LIBRARIES}
+                             "PocoData"
+                             "PocoDataMySQL"
+                             "mysqlclient"
+                             ZLIB::ZLIB)

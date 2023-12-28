@@ -1,0 +1,165 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "Recipient API"
+  description: Пример API для первого домашнего задания по курсу Архитектура программных систем
+servers:
+  - url: http://localhost:8082
+    description: Recipient service
+paths:
+  /trip:
+    post:
+      summary: Создание получателя
+      parameters:
+        - name: user_id
+          description: Идентификатор отправителя
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: delivery_id
+          description: Идентификатор заказа на доставку
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: first_name
+          description: Имя получателя
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: last_name
+          description: Фамилия получателя
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: phone_number
+          description: Номер телефона получателя
+          in: query
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Идентификатор, добавленного получателя
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: Ошибка добавления получателя
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get_recipient:
+    get:
+      summary: Получение информации о получателях
+      parameters:
+        - name: id
+          description: ID получателя
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Список данных получателей
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/recipients"
+        404:
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get_all_recipients:
+    get:
+      summary: Получение информации о получателях
+      responses:
+        "200":
+          description: Список данных получателей
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/recipients"
+        404:
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    recipients:
+      description: Список данных получателей.
+      type: array
+      items:
+        $ref: "#/components/schemas/recipient"
+
+    recipient_id:
+      description: Уникальный идентификатор получателя
+      type: integer
+
+    recipient:
+      description: Информация о получателе.
+      type: object
+      required:
+        - id
+        - user_id
+        - delivery_id
+        - first_name
+        - last_name
+        - phone_number
+      properties:
+        id:
+          $ref: "#/components/schemas/recipient_id"
+        user_id:
+          type: integer
+        delivery_id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone_number:
+          type: string
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: Сообщение об ошибке
+          type: string
+
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+security:
+  - basicAuth: []

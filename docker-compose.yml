@@ -1,4 +1,4 @@
-version: '2.1'
+version: "2.1"
 
 services:
   mai-db-node-ex01:
@@ -11,7 +11,7 @@ services:
       MYSQL_DATABASE: archdb
       MYSQL_USER: stud
       MYSQL_PASSWORD: stud
-      MYSQL_ROOT_PASSWORD: '1'
+      MYSQL_ROOT_PASSWORD: "1"
     command: >
       --sql-mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
       --general-log=ON
@@ -21,7 +21,7 @@ services:
     ports:
       - 3360:3306
     healthcheck:
-      test: "/usr/bin/mariadb --user=stud --password=stud --execute \"SHOW DATABASES;\""
+      test: '/usr/bin/mariadb --user=stud --password=stud --execute "SHOW DATABASES;"'
       interval: 15s
       timeout: 1s
       retries: 5
@@ -41,6 +41,44 @@ services:
       - DB_DATABASE=archdb
     ports:
       - 8080:8080
+    networks:
+      - arch-network
+    depends_on:
+      mai-db-node-ex01:
+        condition: service_healthy
+
+  delivery_service:
+    build:
+      context: delivery_service
+      dockerfile: Dockerfile
+    container_name: delivery_service
+    environment:
+      - DB_HOST=mai-db-node-ex01
+      - DB_PORT=3306
+      - DB_LOGIN=stud
+      - DB_PASSWORD=stud
+      - DB_DATABASE=archdb
+    ports:
+      - 8081:8081
+    networks:
+      - arch-network
+    depends_on:
+      mai-db-node-ex01:
+        condition: service_healthy
+
+  recipient_service:
+    build:
+      context: recipient_service
+      dockerfile: Dockerfile
+    container_name: recipient_service
+    environment:
+      - DB_HOST=mai-db-node-ex01
+      - DB_PORT=3306
+      - DB_LOGIN=stud
+      - DB_PASSWORD=stud
+      - DB_DATABASE=archdb
+    ports:
+      - 8082:8082
     networks:
       - arch-network
     depends_on:

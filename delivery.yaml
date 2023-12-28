@@ -1,0 +1,143 @@
+openapi: "3.0.0"
+info:
+  version: "1.0.0"
+  title: "Arch Lab Example API"
+  description: Пример API для первого домашнего задания по курсу Архитектура программных систем
+servers:
+  - url: http://localhost:8081
+    description: Delivery service
+paths:
+  /delivery:
+    post:
+      summary: Добавление нового заказа
+      parameters:
+        - name: user_id
+          description: Идентификатор создателя заказа
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: type
+          description: Тип заказа
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: creation_date
+          description: Дата создания заказа
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: departure_point
+          description: Точка погрузки
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: receipt_point
+          description: Точка получения
+          in: query
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Идентификатор, добавленного заказа
+          content:
+            application/json:
+              schema:
+                type: integer
+        404:
+          description: Ошибка добавления заказа
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /get_deliveries:
+    get:
+      summary: Отдает информацию о заказах пользователя
+      parameters:
+        - name: user_id
+          description: ID пользователя
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Список данных о заказах пользователя
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/deliveries"
+        404:
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    deliveries:
+      description: Список данных о заказах.
+      type: array
+      items:
+        $ref: "#/components/schemas/visit"
+
+    delivery_id:
+      description: Уникальный идентификатор заказа
+      type: integer
+
+    visit:
+      description: Информация о заказе.
+      type: object
+      required:
+        - id
+        - user_id
+        - type
+        - creation_date
+        - departure_point
+        - receipt_point
+      properties:
+        id:
+          $ref: "#/components/schemas/delivery_id"
+        user_id:
+          type: integer
+        type:
+          type: string
+        creation_date:
+          type: string
+        departure_point:
+          type: string
+        receipt_point:
+          type: string
+
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          description: Сообщение о ошибке
+          type: string
+
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+security:
+  - basicAuth: []
